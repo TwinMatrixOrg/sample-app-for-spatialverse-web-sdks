@@ -57,6 +57,7 @@ import { AilyticsAlert } from '../../types/alerts';
 import { EventSource } from '@twinmatrix/spatialverse-sdk-web';
 import type { metaFeature } from '@twinmatrix/spatialverse-sdk-web';
 import { AlertDetailModal } from '../../components/alerts/AlertDetailModal';
+import {CustomMapObjectTest} from '../../examples/CustomMapObjectTest';
 
 const DashboardLayoutContent: React.FC = () => {
   // UI State
@@ -225,6 +226,7 @@ const DashboardLayoutContent: React.FC = () => {
             : 'Alerts will appear here when detected'
         }
       />
+      <CustomMapObjectTest />
     </>
   );
 

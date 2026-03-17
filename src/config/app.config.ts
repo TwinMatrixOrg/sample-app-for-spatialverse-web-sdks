@@ -36,9 +36,9 @@ const appConfig: AppConfig = {
   // Map SDK configuration
   // Replace with your actual access token, secret key, and role
   metaAtlas: {
-    "accessToken": "235282b19cf8ff403d140980ebad1e5a8b7d54acf984c57b6dbb07ed85af2bb6",
-    "secretKey": "712x3080-7c06-bz23-6a7z-5yz29520",
-    "role": "merdekatower"
+    "accessToken": "",
+    "secretKey": "",
+    "role": ""
   },
   // Data source configuration
   dataSources: {

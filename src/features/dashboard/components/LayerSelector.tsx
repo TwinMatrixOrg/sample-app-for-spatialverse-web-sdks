@@ -87,7 +87,7 @@ export const LayerSelector: React.FC<LayerSelectorProps> = ({
         console.warn('Failed to apply taxonomy filter:', error);
       }
     }
-  }, [hiddenTaxonomyPaths, filterByWhatTaxonomy, isReady]);
+  }, [hiddenTaxonomyPaths, isReady]);
 
   // Toggle a category's checked state
   const toggleCategory = (category: string) => {
@@ -107,12 +107,19 @@ export const LayerSelector: React.FC<LayerSelectorProps> = ({
   const totalCount = Object.keys(whatTaxonomies).length;
 
   return (
-    <div className={className} style={style}>
+    <div
+      className={className}
+      style={{
+        // Match WhatTaxonomyFilter color fixes so text stays visible
+        color: '#000',
+        ...style,
+      }}
+    >
       {/* Use Dropdown component from UI SDK */}
       <Dropdown.Root value="" onChange={() => { }}>
         <Dropdown.Trigger>
-          <span>{name}</span>
-          <span style={{ fontSize: '12px', color: '#666' }}>
+          <span style={{ color: '#000' }}>{name}</span>
+          <span style={{ fontSize: '12px', color: '#000' }}>
             ({checkedCount}/{totalCount})
           </span>
         </Dropdown.Trigger>
@@ -165,6 +172,7 @@ export const LayerSelector: React.FC<LayerSelectorProps> = ({
                       flex: 1,
                       userSelect: 'none',
                       margin: 0,
+                      color: '#000',
                     }}
                   >
                     {category}

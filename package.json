@@ -16,7 +16,7 @@
     "dayjs": "^1.11.19",
     "@iconify/react": "^6.0.2",
     "@twinmatrix/ui-sdk": "^0.0.3",
-    "@twinmatrix/spatialverse-sdk-web": "^3.0.0"
+    "@twinmatrix/spatialverse-sdk-web": "^3.1.2"
   },
   "devDependencies": {
     "@types/react": "^19.1.16",
