@@ -59,6 +59,11 @@ import type { metaFeature } from '@twinmatrix/spatialverse-sdk-web';
 import { AlertDetailModal } from '../../components/alerts/AlertDetailModal';
 import {CustomMapObjectTest} from '../../examples/CustomMapObjectTest';
 
+const LAYER_TAXONOMIES: Record<string, string[]> = {
+  "cctv": ["what.security.cctv"],
+  "lift": ["what.infra.lift"]
+};
+
 const DashboardLayoutContent: React.FC = () => {
   // UI State
   const {
@@ -303,10 +308,7 @@ const DashboardLayoutContent: React.FC = () => {
               <FocusControl />
               <LayerSelector
                 name="Layers"
-                whatTaxonomies={{
-                  'Security': ['what.security.cctv', 'what.security.access'],
-                  'Facilities': ['what.facilities.restroom', 'what.facilities.elevator'],
-                }}
+                whatTaxonomies={LAYER_TAXONOMIES}
               />
             </TopBar.Section>
             <TopBar.Actions>
