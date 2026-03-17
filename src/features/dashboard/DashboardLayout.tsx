@@ -364,6 +364,7 @@ const DashboardLayoutContent: React.FC = () => {
           accessToken={appConfig.metaAtlas?.accessToken || ''}
           secretKey={appConfig.metaAtlas?.secretKey || ''}
           role={appConfig.metaAtlas?.role || ''}
+          environment='agil'
         >
           {/* MapImageLoader loads custom icons/images for use in map layers */}
           <MapImageLoader />

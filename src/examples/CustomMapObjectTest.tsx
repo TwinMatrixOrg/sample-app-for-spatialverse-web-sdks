@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useCustomMapObject, useMapOverlays, CustomMapObject } from '@twinmatrix/spatialverse-sdk-web';
+import { useCustomMapObject, useMapOverlays, CustomMapObject } from '@twinmatrix/spatialverse-sdk-web/react';
 import { Card, Button } from '@twinmatrix/ui-sdk';
 
 /**
@@ -63,10 +63,10 @@ export const CustomMapObjectTest = () => {
         name: 'My Custom Restaurant',
         geometry: {
           type: 'Point',
-          coordinates: [101.70046493411064, 3.1420018237350433],
+          coordinates: [103.8464613847388, 1.3895119307208716],
         },
         whatDimension: 'what.service.restaurant',
-        whereDimension: 'where.malaysia.merdeka_tower.floor_1',
+        whereDimension: 'where.ste.digihub.l1',
         localRef: 'REST-001',
         properties: {
           isSearchable: true,
@@ -94,10 +94,10 @@ export const CustomMapObjectTest = () => {
         name: 'My Custom Shop',
         geometry: {
           type: 'Point',
-          coordinates: [101.70146493411064, 3.1430018237350433],
+          coordinates: [103.84686138473881, 1.3899119307208716],
         },
         whatDimension: 'what.service.shop',
-        whereDimension: 'where.malaysia.merdeka_tower.floor_1',
+        whereDimension: 'where.ste.digihub.l1',
         properties: {
           isSearchable: true,
         },
@@ -157,13 +157,13 @@ export const CustomMapObjectTest = () => {
         geometry: {
           type: 'LineString',
           coordinates: [
-            [101.69946493411064, 3.1410018237350433],
-            [101.70046493411064, 3.1420018237350433],
-            [101.70146493411064, 3.1430018237350433],
+            [103.8458613847388, 1.3889119307208715],
+            [103.8464613847388, 1.3895119307208716],
+            [103.8470613847388, 1.3901119307208716],
           ],
         },
         whatDimension: 'what.infra.path',
-        whereDimension: 'where.malaysia.merdeka_tower.floor_1',
+        whereDimension: 'where.ste.digihub.l1',
         properties: {
           isSearchable: false,
         },
@@ -187,16 +187,16 @@ export const CustomMapObjectTest = () => {
           type: 'Polygon',
           coordinates: [
             [
-              [101.69946493411064, 3.1410018237350433],
-              [101.70146493411064, 3.1410018237350433],
-              [101.70146493411064, 3.1430018237350433],
-              [101.69946493411064, 3.1430018237350433],
-              [101.69946493411064, 3.1410018237350433],
+              [103.8458613847388, 1.3889119307208715],
+              [103.8470613847388, 1.3889119307208715],
+              [103.8470613847388, 1.3901119307208716],
+              [103.8458613847388, 1.3901119307208716],
+              [103.8458613847388, 1.3889119307208715],
             ],
           ],
         },
         whatDimension: 'what.infra.area',
-        whereDimension: 'where.malaysia.merdeka_tower.floor_1',
+        whereDimension: 'where.ste.digihub.l1',
         properties: {
           isSearchable: true,
         },
