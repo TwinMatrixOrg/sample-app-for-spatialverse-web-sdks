@@ -20,6 +20,10 @@ export interface AppConfig {
       enabled: boolean;
       url?: string;
     };
+    alerts?: {
+      enabled: boolean;
+      url?: string;
+    };
     activeSource?: string;
   };
 }
@@ -45,7 +49,11 @@ const appConfig: AppConfig = {
     activeSource: 'ailytics', // Source identifier for event processing
     realtime: {
       enabled: false, // Set to true and provide URL to enable realtime mode
-      url: undefined, // WebSocket URL for realtime alerts
+      url: undefined, // Set your WebSocket URL here
+    },
+    alerts: {
+      enabled: false, // Set to true and provide URL to enable agilcare alerts
+      url: undefined, // Set your WebSocket URL here
     },
   },
 };

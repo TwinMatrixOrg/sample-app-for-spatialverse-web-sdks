@@ -42,10 +42,10 @@ import {
   useThemeStore,
 } from '@twinmatrix/ui-sdk';
 // Import Map SDK components from external package
-import { MetaAtlasMap } from '@twinmatrix/spatialverse-sdk-web/react';
+import { MetaAtlasMap, useMetaAtlas } from '@twinmatrix/spatialverse-sdk-web/react';
 import { Icon } from '@iconify/react';
 import appConfig from '../../config/app.config';
-import { useEventStreamStore, useLoadCameras } from '../../stores/useEventStreamStore';
+import { useEventStreamStore, useLoadCameras, } from '../../stores/useEventStreamStore';
 import { useDashboardStore } from './stores/dashboardStore';
 import { FocusControl } from './components/FocusControl';
 import { LayerSelector } from './components/LayerSelector';
@@ -57,7 +57,11 @@ import { AilyticsAlert } from '../../types/alerts';
 import { EventSource } from '@twinmatrix/spatialverse-sdk-web';
 import type { metaFeature } from '@twinmatrix/spatialverse-sdk-web';
 import { AlertDetailModal } from '../../components/alerts/AlertDetailModal';
+import { AgilAlertsCard } from '../../components/alerts/AgilAlertsCard';
+import { AgilAlertModal } from '../../components/alerts/AgilAlertModal';
 import {CustomMapObjectTest} from '../../examples/CustomMapObjectTest';
+import { useAgilAlertsStore } from '../../stores/useAgilAlertsStore';
+import { AgilAlert } from '../../types/alerts';
 
 const LAYER_TAXONOMIES: Record<string, string[]> = {
   "cctv": ["what.security.cctv"],
@@ -80,6 +84,8 @@ const DashboardLayoutContent: React.FC = () => {
   const [drawerSide, setDrawerSide] = useState<'left' | 'right'>('left');
   const [selectedAlert, setSelectedAlert] = useState<AilyticsAlert | null>(null);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [selectedAgilAlert, setSelectedAgilAlert] = useState<AgilAlert | null>(null);
+  const [isAgilAlertModalOpen, setIsAgilAlertModalOpen] = useState(false);
 
   // Theme
   const mode = useThemeStore((state) => state.mode);
@@ -97,6 +103,33 @@ const DashboardLayoutContent: React.FC = () => {
   const startDummy = useEventStreamStore((state) => state.startDummy);
   const stopDummy = useEventStreamStore((state) => state.stopDummy);
   const eventStreamCameras = useEventStreamStore((state) => state.cameras);
+
+  // AGIL Alerts
+  const agilAlerts = useAgilAlertsStore((state) => state.alerts);
+  const agilIsConnected = useAgilAlertsStore((state) => state.isConnected);
+  const startAgilAlerts = useAgilAlertsStore((state) => state.connect);
+  const stopAgilAlerts = useAgilAlertsStore((state) => state.disconnect);
+  const getAgilSocket = useAgilAlertsStore((state) => state.getSocket);
+
+/**
+ * These functions from the sdk will listen to the provided socket connection.
+ * It is best to provide the socket instance you want it to subscribe to otherwise it will listen to window events.
+ * The sdk will only handle 'acknowledge' type messages and take action according to the content of the message.
+ */
+  const { listenForAlertMessages, stopListeningForAlertMessages, sdk } = useMetaAtlas();
+
+  // Connect Agil Alerts WebSocket only after SDK is initialized
+  useEffect(() => {
+  if (!sdk) return;
+  startAgilAlerts();
+  const socket = getAgilSocket() ?? undefined;
+  listenForAlertMessages(socket);
+  return () => {
+    stopListeningForAlertMessages();
+    stopAgilAlerts();
+  };
+}, [sdk]);
+
 
   // Enable dummy mode on app load (only after cameras are loaded)
   useEffect(() => {
@@ -204,6 +237,15 @@ const DashboardLayoutContent: React.FC = () => {
 
   const rightPanelContent = (
     <>
+      {/* Agil Alerts card */}
+      <AgilAlertsCard
+        alerts={agilAlerts}
+        isConnected={agilIsConnected}
+        onAlertClick={(alert) => {
+          setSelectedAgilAlert(alert);
+          setIsAgilAlertModalOpen(true);
+        }}
+      />
       {/* Alerts panel */}
       <AlertsPanel
         items={widgetData.alertListItems}
@@ -364,7 +406,7 @@ const DashboardLayoutContent: React.FC = () => {
           accessToken={appConfig.metaAtlas?.accessToken || ''}
           secretKey={appConfig.metaAtlas?.secretKey || ''}
           role={appConfig.metaAtlas?.role || ''}
-          environment='agil'
+          // environment='agil'
         >
           {/* MapImageLoader loads custom icons/images for use in map layers */}
           <MapImageLoader />
@@ -419,6 +461,16 @@ const DashboardLayoutContent: React.FC = () => {
         onClose={() => {
           setIsAlertModalOpen(false);
           setSelectedAlert(null);
+        }}
+      />
+
+      {/* Agil Alert Modal */}
+      <AgilAlertModal
+        isOpen={isAgilAlertModalOpen}
+        alert={selectedAgilAlert}
+        onClose={() => {
+          setIsAgilAlertModalOpen(false);
+          setSelectedAgilAlert(null);
         }}
       />
     </DashboardShell>

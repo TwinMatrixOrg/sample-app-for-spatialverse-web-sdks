@@ -10,13 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
+    "@twinmatrix/spatialverse-sdk-web": "file:/Users/vilmadedja/Desktop/AGILSdk",
+    "@twinmatrix/ui-sdk": "^0.0.4",
+    "dayjs": "^1.11.19",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "zustand": "^5.0.8",
-    "dayjs": "^1.11.19",
-    "@iconify/react": "^6.0.2",
-    "@twinmatrix/ui-sdk": "^0.0.4",
-    "@twinmatrix/spatialverse-sdk-web": "^3.1.5"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "^19.1.16",

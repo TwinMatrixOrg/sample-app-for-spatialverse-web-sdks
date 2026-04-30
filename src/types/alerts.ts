@@ -64,6 +64,26 @@ export interface Camera {
   };
 }
 
+// ─── Agil Alert ─────────────────────────────────────────────────
+
+export type AgilAlertSeverity = 'critical' | 'high' | 'medium';
+
+export interface AgilAlert {
+  id: string;
+  title: string;
+  body: string;
+  severity: AgilAlertSeverity;
+  localRef: string;
+  timestamp: string; // UTC ISO 8601 format
+}
+
+export interface AgilAlertMessage {
+  type: string; // "alert"
+  data: AgilAlert;
+}
+
+// ─── Ailytics helpers ────────────────────────────────────────────────────────
+
 /**
  * Map trigger types to severity levels
  */

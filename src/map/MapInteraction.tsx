@@ -60,7 +60,7 @@ export function MapInteraction({
 }: MapInteractionProps) {
   const { onMapClick, isReady: mapEventsReady } = useMapEvents();
   const { createReactPopup, createMarker, isReady } = useMapOverlays();
-  const { map, getCurrentFocusBuilding } = useMetaAtlas();
+  const { map, getCurrentFocusBuilding, clearPins } = useMetaAtlas();
   const setMarker = useMapDataStore((state) => state.setMarker);
   const setPopup = useMapDataStore((state) => state.setPopup);
   const activeObject = useMapDataStore((state) => state.activeObject);
@@ -156,6 +156,14 @@ export function MapInteraction({
         duration: isSimilarTaxonomy ? 1000 : 3000,
       });
     }
+
+    // Close all existing popups before placing the new pin
+    clearPins();
+    const { popup: prevPopup, marker: prevMarker } = useMapDataStore.getState();
+    prevPopup?.remove();
+    prevMarker?.remove();
+    setPopup(null);
+    setMarker(null);
 
     // Create a simple popup content as React element
     const popupContent = React.createElement('div', {
