@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
-    "@twinmatrix/spatialverse-sdk-web": "file:/Users/vilmadedja/Desktop/AGILSdk",
+    "@twinmatrix/spatialverse-sdk-web": "3.1.7",
     "@twinmatrix/ui-sdk": "^0.0.4",
     "dayjs": "^1.11.19",
     "react": "^19.1.1",

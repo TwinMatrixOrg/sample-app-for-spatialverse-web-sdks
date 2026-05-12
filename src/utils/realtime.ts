@@ -8,6 +8,8 @@
 export type RealtimeConnectionHandlers = {
   onMessage: (data: unknown) => void;
   onOpen?: () => void;
+  /** Fires on every successful open, including after auto-reconnect (new WebSocket instance). */
+  onSocketReady?: (ws: WebSocket) => void;
   onClose?: () => void;
   onError?: (event: Event) => void;
 };
@@ -33,6 +35,7 @@ export const connectRealtime = (
     currentWs.onopen = () => {
       reconnectAttempts = 0;
       handlers.onOpen?.();
+      handlers.onSocketReady?.(currentWs);
     };
     currentWs.onmessage = (event) => {
       let parsed: unknown = event.data;

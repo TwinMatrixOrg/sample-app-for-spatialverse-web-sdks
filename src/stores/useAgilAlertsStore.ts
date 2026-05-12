@@ -19,6 +19,11 @@ import { AgilAlert, AgilAlertMessage } from '../types/alerts';
 
 type Connection = { close: () => void; send: (data: unknown) => void; getSocket: () => WebSocket };
 
+export type AgilAlertsConnectOptions = {
+  /** Called whenever the socket opens, including after reconnect — use to rebind SDK listeners. */
+  onSocketReady?: (ws: WebSocket) => void;
+};
+
 interface AgilAlertsState {
   alerts: AgilAlert[];
   alertsById: Record<string, AgilAlert>;
@@ -26,7 +31,7 @@ interface AgilAlertsState {
   isLoading: boolean;
   error: string | null;
 
-  connect: () => void;
+  connect: (options?: AgilAlertsConnectOptions) => void;
   disconnect: () => void;
   addAlerts: (alerts: AgilAlert[]) => void;
   sendMessage: (data: unknown) => void;
@@ -86,7 +91,7 @@ export const useAgilAlertsStore = create<AgilAlertsState>((set, get) => {
 
     addAlerts,
 
-    connect: () => {
+    connect: (options?: AgilAlertsConnectOptions) => {
       if (connection) return;
       const cfg = appConfig.dataSources?.alerts;
       if (!cfg?.enabled || !cfg.url) {
@@ -97,6 +102,7 @@ export const useAgilAlertsStore = create<AgilAlertsState>((set, get) => {
       connection = connectRealtime(cfg.url, {
         onMessage: handleMessage,
         onOpen:  () => set({ isConnected: true, isLoading: false, error: null }),
+        onSocketReady: options?.onSocketReady,
         onClose: () => set({ isConnected: false }),
         onError: () => set({ error: 'Agil Alerts connection error', isLoading: false }),
       });

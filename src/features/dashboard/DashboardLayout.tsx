@@ -109,26 +109,29 @@ const DashboardLayoutContent: React.FC = () => {
   const agilIsConnected = useAgilAlertsStore((state) => state.isConnected);
   const startAgilAlerts = useAgilAlertsStore((state) => state.connect);
   const stopAgilAlerts = useAgilAlertsStore((state) => state.disconnect);
-  const getAgilSocket = useAgilAlertsStore((state) => state.getSocket);
 
 /**
  * These functions from the sdk will listen to the provided socket connection.
  * It is best to provide the socket instance you want it to subscribe to otherwise it will listen to window events.
  * The sdk will only handle 'acknowledge' type messages and take action according to the content of the message.
+ * Rebind on every socket open: connectRealtime replaces the WebSocket on reconnect, so listenForAlertMessages
+ * must run again or acknowledge handling stays attached to the closed instance.
  */
   const { listenForAlertMessages, stopListeningForAlertMessages, sdk } = useMetaAtlas();
 
   // Connect Agil Alerts WebSocket only after SDK is initialized
   useEffect(() => {
-  if (!sdk) return;
-  startAgilAlerts();
-  const socket = getAgilSocket() ?? undefined;
-  listenForAlertMessages(socket);
-  return () => {
-    stopListeningForAlertMessages();
-    stopAgilAlerts();
-  };
-}, [sdk]);
+    if (!sdk) return;
+    startAgilAlerts({
+      onSocketReady: (ws) => {
+        listenForAlertMessages(ws);
+      },
+    });
+    return () => {
+      stopListeningForAlertMessages();
+      stopAgilAlerts();
+    };
+  }, [sdk, listenForAlertMessages, startAgilAlerts, stopListeningForAlertMessages, stopAgilAlerts]);
 
 
   // Enable dummy mode on app load (only after cameras are loaded)
