@@ -1,161 +1,172 @@
 /**
  * Focus Control Component
- * 
- * Provides UI controls for navigating the focus tree (site/building/level).
- * Uses the Map SDK's useFocus hook to interact with the map's focus system.
- * 
- * This component demonstrates:
- * - How to use Map SDK hooks (useFocus)
- * - How to navigate the focus tree hierarchy
- * - How to sync UI state with Map SDK state
- * 
- * Usage:
- * ```tsx
- * <FocusControl />
- * ```
+ *
+ * Generic depth-based focus navigation using Map SDK hooks.
+ * Semantic labels (Site / Location / Building / Floor) are assigned here.
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
-// Import TopBar component from external UI SDK package
+import React, { useEffect, useMemo, useState } from 'react';
 import { TopBar } from '@twinmatrix/ui-sdk';
-// Import useFocus hook from external Map SDK package
 import { useFocus } from '@twinmatrix/spatialverse-sdk-web/react';
 
+type TierOption = { id: string; name: string };
+
+const TIER_LABELS: Record<number, string[]> = {
+  3: ['Site', 'Location', 'Floor'],
+  4: ['Site', 'Location', 'Building', 'Floor'],
+};
+
+function getLabelsForTierCount(tierCount: number): string[] {
+  if (TIER_LABELS[tierCount]) {
+    return TIER_LABELS[tierCount];
+  }
+
+  const labels = ['Site'];
+  for (let i = 1; i < tierCount - 1; i += 1) {
+    labels.push(`Level ${i}`);
+  }
+  labels.push('Floor');
+  return labels;
+}
+
 export const FocusControl: React.FC = () => {
-  // Get functions from Map SDK
-  const { getSites, getBuildingList, getLevelList, focusTo, isReady } = useFocus();
-  
-  // Local state for UI
-  const [selectedSite, setSelectedSite] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [selectedLevel, setSelectedLevel] = useState<{ id: string; name: string } | null>(null);
-  const [sites, setSites] = useState<Array<{ id: string; name: string }>>([]);
-  const [locations, setLocations] = useState<Array<{ id: string; name: string }>>([]);
-  const [levels, setLevels] = useState<Array<{ id: string; name: string }>>([]);
+  const {
+    getRootNodes,
+    getChildNodes,
+    getSelectorTierCount,
+    focusTo,
+    isReady,
+  } = useFocus();
 
-  // Derive level names array from levels objects
-  const levelNames = useMemo(() => levels.map((l) => l.name), [levels]);
+  const [selections, setSelections] = useState<string[]>([]);
 
-  // Initialize sites when Map SDK is ready
-  useEffect(() => {
-    if (isReady) {
-      const siteList = getSites();
-      const newSites = siteList.map((site) => ({
-        id: site.whereTaxonomy,
-        name: site.name,
-      }));
-      setSites(newSites);
-      
-      // Set initial site if available and none selected
-      if (newSites.length > 0 && !selectedSite) {
-        setSelectedSite(newSites[0].id);
+  const selectedRoot = selections[0] ?? null;
+  const tierCount = selectedRoot ? getSelectorTierCount(selectedRoot) : 0;
+  const labels = useMemo(() => getLabelsForTierCount(tierCount), [tierCount]);
+
+  const tierOptions = useMemo((): TierOption[][] => {
+    if (!isReady || !selectedRoot || tierCount === 0) return [];
+
+    const options: TierOption[][] = [
+      getRootNodes().map((node) => ({
+        id: node.whereTaxonomy,
+        name: node.name,
+      })),
+    ];
+
+    for (let tier = 1; tier < tierCount; tier += 1) {
+      const parent = selections[tier - 1];
+      if (!parent) {
+        options[tier] = [];
+        continue;
       }
-    }
-  }, [isReady]);
-
-  // Update buildings when site selection changes
-  useEffect(() => {
-    if (isReady && selectedSite) {
-      const buildings = getBuildingList(selectedSite);
-      const newLocations = buildings.map((building) => ({
-        id: building.whereTaxonomy,
-        name: building.name,
+      options[tier] = getChildNodes(parent).map((node) => ({
+        id: node.whereTaxonomy,
+        name: node.name,
       }));
-      setLocations(newLocations);
-      
-      // Reset location when site changes
-      setSelectedLocation(null);
-      
-      // Set initial location if available
-      if (newLocations.length > 0) {
-        setSelectedLocation(newLocations[0].id);
+    }
+
+    return options;
+  }, [getChildNodes, getRootNodes, isReady, selectedRoot, selections, tierCount]);
+
+  useEffect(() => {
+    if (!isReady) return;
+
+    const roots = getRootNodes();
+    if (roots.length === 0) {
+      setSelections([]);
+      return;
+    }
+
+    setSelections((current) => (current.length > 0 ? current : [roots[0].whereTaxonomy]));
+  }, [getRootNodes, isReady]);
+
+  useEffect(() => {
+    if (!isReady || !selectedRoot || tierCount === 0) return;
+
+    setSelections((current) => {
+      const next = [...current];
+
+      while (next.length < tierCount) {
+        const tier = next.length;
+        const choices = tierOptions[tier] ?? [];
+        if (!choices[0]) break;
+        next.push(choices[0].id);
       }
-    } else {
-      setLocations([]);
-      setSelectedLocation(null);
-    }
-  }, [isReady, selectedSite]);
 
-  // Update levels when building selection changes
-  useEffect(() => {
-    if (isReady && selectedLocation) {
-      const buildingLevels = getLevelList(selectedLocation);
-      const newLevels = buildingLevels.map((level) => ({
-        id: level.whereTaxonomy,
-        name: level.name,
-      }));
-      setLevels(newLevels);
+      for (let tier = 1; tier < tierCount; tier += 1) {
+        const choices = tierOptions[tier] ?? [];
+        if (choices.length === 0) continue;
 
-      // Reset selected level to first available level if current selection is not in new levels
-      if (newLevels.length > 0) {
-        setSelectedLevel((prevLevel) => {
-          // Only update if current level is not in the new levels list
-          if (!prevLevel || !newLevels.find((l) => l.name === prevLevel.name)) {
-            return newLevels[0];
-          }
-          return prevLevel;
-        });
-      } else {
-        setSelectedLevel(null);
+        const existing = next[tier];
+        const isValid = choices.some((choice) => choice.id === existing);
+        if (!isValid) {
+          next[tier] = choices[0].id;
+        }
       }
-    } else {
-      setLevels([]);
-      setSelectedLevel(null);
-    }
-  }, [isReady, selectedLocation]);
 
-  // Focus to site when site selection changes
-  useEffect(() => {
-    if (isReady && selectedSite) {
-      focusTo(selectedSite);
-    }
-  }, [isReady, selectedSite]);
+      if (next.length > tierCount) {
+        next.length = tierCount;
+      }
 
-  // Focus to building when building selection changes
-  useEffect(() => {
-    if (isReady && selectedLocation) {
-      focusTo(selectedLocation);
-      // Reset level selection when location changes (will be set by levels useEffect)
-    }
-  }, [isReady, selectedLocation]);
+      const unchanged =
+        next.length === current.length && next.every((value, index) => value === current[index]);
+      return unchanged ? current : next;
+    });
+  }, [isReady, selectedRoot, tierCount, tierOptions]);
 
-  // Focus to level when level selection changes
   useEffect(() => {
-    if (isReady && selectedLevel?.id) {
-      focusTo(selectedLevel.id);
+    if (!isReady) return;
+
+    const validSelections = selections.filter(Boolean);
+    const activeSelection = validSelections[validSelections.length - 1];
+    if (activeSelection) {
+      focusTo(activeSelection);
     }
-  }, [isReady, selectedLevel]);
+  }, [focusTo, isReady, selections]);
+
+  const handleTierChange = (tierIndex: number, value: string) => {
+    setSelections((prev) => {
+      const next = [...prev];
+      next[tierIndex] = value;
+      next.length = tierIndex + 1;
+      return next;
+    });
+  };
+
+  if (!isReady || tierCount === 0) {
+    return null;
+  }
+
+  const leafTierIndex = tierCount - 1;
+  const leafOptions = tierOptions[leafTierIndex] ?? [];
+  const selectedLeafId = selections[leafTierIndex] ?? '';
+  const selectedLeafName =
+    leafOptions.find((option) => option.id === selectedLeafId)?.name ?? '';
 
   return (
     <>
-      {/* Site selector - uses TopBar.LocationSelector from UI SDK */}
-      <TopBar.LocationSelector
-        locations={sites}
-        value={selectedSite || ''}
-        onChange={setSelectedSite}
-        label='Site:'
-        disabled={!isReady}
-      />
-      {/* Building/Location selector */}
-      <TopBar.LocationSelector
-        locations={locations}
-        value={selectedLocation || ''}
-        onChange={setSelectedLocation}
-        label='Location:'
-        disabled={!isReady || !selectedSite || locations.length === 0}
-      />
-      {/* Level/Floor selector - uses TopBar.LevelSelector from UI SDK */}
+      {Array.from({ length: leafTierIndex }).map((_, tierIndex) => (
+        <TopBar.LocationSelector
+          key={labels[tierIndex]}
+          locations={tierOptions[tierIndex] ?? []}
+          value={selections[tierIndex] ?? ''}
+          onChange={(value) => handleTierChange(tierIndex, value)}
+          label={`${labels[tierIndex]}:`}
+          disabled={!isReady || (tierOptions[tierIndex] ?? []).length === 0}
+        />
+      ))}
       <TopBar.LevelSelector
-        levels={levelNames}
-        value={selectedLevel?.name ?? ''}
+        levels={leafOptions.map((option) => option.name)}
+        value={selectedLeafName}
         onChange={(value) => {
-          const level = levels.find((l) => l.name === value);
-          if (level) {
-            setSelectedLevel({ name: level.name, id: level.id });
+          const leaf = leafOptions.find((option) => option.name === value);
+          if (leaf) {
+            handleTierChange(leafTierIndex, leaf.id);
           }
         }}
-        label='Floor:'
-        disabled={!isReady || !selectedLocation || levels.length === 0}
+        label={`${labels[leafTierIndex]}:`}
+        disabled={!isReady || leafOptions.length === 0}
       />
     </>
   );

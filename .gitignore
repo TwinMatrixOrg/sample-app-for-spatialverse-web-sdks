@@ -6,11 +6,8 @@ dist/
 build/
 
 # Environment variables
-.env
-.env.local
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -22,3 +19,4 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+config.bat
